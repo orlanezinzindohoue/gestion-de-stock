@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="theme-color" content="#121821">
+  <title>Nexora Stock — Gestion de stock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" aria-label="Nexora Stock, accueil">
+      <span class="brand-mark">N<span>•</span></span>
+      <span class="brand-copy"><strong>NEXORA</strong><small>STOCK CONTROL</small></span>
+    </a>
+    <div class="workspace-label">ESPACE DE TRAVAIL</div>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span> Vue d'ensemble</button>
+      <button class="nav-item" data-view="products"><span class="nav-icon">▦</span> Produits <span class="nav-count" id="nav-product-count">0</span></button>
+      <button class="nav-item" data-view="movements"><span class="nav-icon">⇄</span> Mouvements</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="status-card"><span class="status-dot"></span><div><strong>Stock synchronisé</strong><small>Base locale active</small></div></div>
+      <div class="sidebar-foot">NEXORA STOCK <span>v1.0</span></div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="mobile-brand"><span class="brand-mark">N<span>•</span></span><strong>NEXORA</strong></div>
+      <div class="breadcrumb"><span>Workspace</span><b>/</b><strong id="breadcrumb-current">Vue d'ensemble</strong></div>
+      <div class="topbar-right"><span class="today-pill"><span class="live-dot"></span> Système opérationnel</span><div class="avatar">NS</div></div>
+    </header>
+
+    <section class="page-view active" id="view-dashboard">
+      <div class="page-heading">
+        <div><p class="eyebrow">CENTRE DE CONTRÔLE <span></span></p><h1>Vue d'ensemble</h1><p class="subheading">Une vision claire de ton stock, en un seul endroit.</p></div>
+        <button class="button button-primary" id="quick-add"><span>＋</span> Ajouter un produit</button>
+      </div>
+      <div class="metric-grid">
+        <article class="metric-card metric-main"><div class="metric-top"><span>Valeur totale du stock</span><span class="metric-icon mint">◈</span></div><div class="metric-value" id="stock-value">0 FCFA</div><div class="metric-foot"><span class="mini-indicator">↗</span> Valeur estimée des unités disponibles</div><div class="card-orb"></div></article>
+        <article class="metric-card"><div class="metric-top"><span>Références produits</span><span class="metric-icon violet">▦</span></div><div class="metric-value" id="product-count">0</div><div class="metric-foot">Produits enregistrés</div></article>
+        <article class="metric-card"><div class="metric-top"><span>Unités en stock</span><span class="metric-icon blue">▤</span></div><div class="metric-value" id="unit-count">0</div><div class="metric-foot">Quantité totale disponible</div></article>
+        <article class="metric-card metric-warning"><div class="metric-top"><span>Alertes de stock</span><span class="metric-icon amber">⚑</span></div><div class="metric-value" id="alert-count">0</div><div class="metric-foot"><span id="out-count">0</span> en rupture · <span id="low-count">0</span> faibles</div></article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel inventory-panel">
+          <div class="panel-heading"><div><h2>Produits récents</h2><p>Les références de ton inventaire</p></div><button class="text-button" data-go="products">Voir tous les produits <span>↗</span></button></div>
+          <div class="table-wrap"><table><thead><tr><th>PRODUIT</th><th>CATÉGORIE</th><th>QUANTITÉ</th><th>ÉTAT</th></tr></thead><tbody id="recent-products"><tr><td colspan="4" class="empty-cell">Chargement de l'inventaire…</td></tr></tbody></table></div>
+        </section>
+        <section class="panel activity-panel">
+          <div class="panel-heading"><div><h2>Activité récente</h2><p>Derniers mouvements enregistrés</p></div><span class="panel-heading-icon">⌁</span></div>
+          <div class="activity-list" id="recent-activity"><div class="empty-state">Aucun mouvement pour le moment.</div></div>
+          <button class="activity-link" data-go="movements">Consulter l'historique complet <span>→</span></button>
+        </section>
+      </div>
+      <div class="bottom-note"><span class="note-icon">✦</span><span><strong>Un conseil :</strong> définis un seuil d'alerte pour chaque produit afin d'anticiper les ruptures de stock.</span></div>
+    </section>
+
+    <section class="page-view" id="view-products">
+      <div class="page-heading"><div><p class="eyebrow">INVENTAIRE <span></span></p><h1>Gestion des produits</h1><p class="subheading">Organise tes références et garde le contrôle sur les quantités.</p></div><button class="button button-primary" id="add-product"><span>＋</span> Nouveau produit</button></div>
+      <section class="panel products-panel">
+        <div class="toolbar"><div class="search-box"><span>⌕</span><input id="product-search" type="search" placeholder="Rechercher un produit, une référence…" autocomplete="off"></div><select id="category-filter" aria-label="Filtrer par catégorie"><option value="">Toutes les catégories</option></select><span class="results-count" id="results-count">0 produit</span></div>
+        <div class="table-wrap"><table><thead><tr><th>RÉFÉRENCE</th><th>PRODUIT</th><th>CATÉGORIE</th><th>QUANTITÉ</th><th>PRIX UNITAIRE</th><th>ÉTAT</th><th>ACTIONS</th></tr></thead><tbody id="products-table"><tr><td colspan="7" class="empty-cell">Chargement…</td></tr></tbody></table></div>
+      </section>
+    </section>
+
+    <section class="page-view" id="view-movements">
+      <div class="page-heading"><div><p class="eyebrow">TRAÇABILITÉ <span></span></p><h1>Mouvements de stock</h1><p class="subheading">Retrouve les entrées et sorties enregistrées dans le système.</p></div><button class="button button-primary" id="add-movement"><span>＋</span> Nouveau mouvement</button></div>
+      <section class="panel products-panel"><div class="panel-heading movement-heading"><div><h2>Historique des mouvements</h2><p>Les 100 opérations les plus récentes</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>DATE</th><th>PRODUIT</th><th>TYPE</th><th>QUANTITÉ</th><th>NOTE</th></tr></thead><tbody id="movements-table"><tr><td colspan="5" class="empty-cell">Chargement…</td></tr></tbody></table></div></section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="product-modal" aria-hidden="true">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+    <div class="modal-heading"><div><p class="eyebrow">FICHE INVENTAIRE</p><h2 id="product-modal-title">Ajouter un produit</h2><p>Renseigne les informations de la référence.</p></div><button class="icon-button" data-close="product-modal" aria-label="Fermer">×</button></div>
+    <form id="product-form">
+      <input type="hidden" id="product-id">
+      <div class="form-grid">
+        <label>Référence / SKU<input id="product-sku" required maxlength="40" placeholder="Ex. CLAV-001"></label>
+        <label>Nom du produit<input id="product-name" required maxlength="120" placeholder="Ex. Clavier mécanique"></label>
+        <label>Catégorie<input id="product-category" required maxlength="80" placeholder="Ex. Accessoires"></label>
+        <label>Quantité initiale<input id="product-quantity" type="number" min="0" step="1" value="0" required></label>
+        <label>Prix unitaire (FCFA)<input id="product-price" type="number" min="0" step="1" value="0" required></label>
+        <label>Seuil d'alerte<input id="product-min" type="number" min="0" step="1" value="5" required></label>
+      </div>
+      <p class="form-hint" id="edit-hint">La quantité initiale sera enregistrée comme un mouvement d'entrée. Les changements de quantité ultérieurs se font dans « Mouvements ».</p>
+      <div class="form-error" id="product-error" role="alert"></div>
+      <div class="modal-actions"><button type="button" class="button button-quiet" data-close="product-modal">Annuler</button><button type="submit" class="button button-primary" id="save-product">Enregistrer le produit <span>→</span></button></div>
+    </form>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="movement-modal" aria-hidden="true">
+  <section class="modal modal-small" role="dialog" aria-modal="true" aria-labelledby="movement-modal-title">
+    <div class="modal-heading"><div><p class="eyebrow">MISE À JOUR DU STOCK</p><h2 id="movement-modal-title">Nouveau mouvement</h2><p>Enregistre une entrée ou une sortie réelle.</p></div><button class="icon-button" data-close="movement-modal" aria-label="Fermer">×</button></div>
+    <form id="movement-form">
+      <label>Produit<select id="movement-product" required><option value="">Choisir un produit…</option></select></label>
+      <div class="form-grid two-cols"><label>Type<select id="movement-type"><option value="entry">Entrée de stock</option><option value="exit">Sortie de stock</option></select></label><label>Quantité<input id="movement-quantity" type="number" min="1" step="1" required value="1"></label></div>
+      <label>Note (facultatif)<input id="movement-note" maxlength="240" placeholder="Ex. Réapprovisionnement fournisseur"></label>
+      <div class="stock-hint" id="movement-stock-hint">Choisis un produit pour voir son stock actuel.</div>
+      <div class="form-error" id="movement-error" role="alert"></div>
+      <div class="modal-actions"><button type="button" class="button button-quiet" data-close="movement-modal">Annuler</button><button type="submit" class="button button-primary" id="save-movement">Enregistrer le mouvement <span>→</span></button></div>
+    </form>
+  </section>
+</div>
+
+<div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
